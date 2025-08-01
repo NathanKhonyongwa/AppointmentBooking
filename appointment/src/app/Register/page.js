@@ -6,6 +6,10 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    phone: '',
+    gender: '',
+    dob: '',
+    therapyReason: '',
     password: '',
     confirmPassword: '',
     acceptedTerms: false,
@@ -26,6 +30,9 @@ export default function RegisterPage() {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Name is required';
     if (!form.email.trim()) errs.email = 'Email is required';
+    if (!form.phone.trim()) errs.phone = 'Phone number is required';
+    if (!form.dob.trim()) errs.dob = 'Date of Birth is required';
+    if (!form.therapyReason.trim()) errs.therapyReason = 'Please provide a reason';
     if (!form.password) errs.password = 'Password is required';
     if (form.password !== form.confirmPassword)
       errs.confirmPassword = 'Passwords do not match';
@@ -40,20 +47,22 @@ export default function RegisterPage() {
       setErrors(validationErrors);
       return;
     }
-    // Your registration logic here (e.g., API call)
     alert('Registration form submitted!');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 font-poppins">
-        <h2 className="text-center text-purple-600 text-2xl font-semibold mb-6">
-          Register Account
+    <div className="min-h-screen bg-gray-100 flex items-start justify-center py-12">
+      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-10 font-sans">
+        <h2 className="text-center text-purple-700 text-3xl font-bold mb-4">
+          Therapy Client Registration
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name */}
+        <p className="text-center text-gray-600 text-sm mb-6">
+          Please complete the form below to book your first session.
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Full Name */}
           <div>
-            <label className="block text-gray-800 text-sm mb-1" htmlFor="name">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Full Name
             </label>
             <input
@@ -62,130 +71,190 @@ export default function RegisterPage() {
               id="name"
               value={form.name}
               onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
-                errors.name ? 'border-red-500' : 'border-gray-200'
-              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
-              required
+              className={`mt-1 block w-full rounded-lg border ${
+                errors.name ? 'border-red-500' : 'border-gray-300'
+              } bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400`}
             />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-            )}
+            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-gray-800 text-sm mb-1" htmlFor="email">
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              value={form.email}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
-                errors.email ? 'border-red-500' : 'border-gray-200'
-              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
-              required
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
+          {/* Email and Phone */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                id="email"
+                value={form.email}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-lg border ${
+                  errors.email ? 'border-red-500' : 'border-gray-300'
+                } bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400`}
+              />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                id="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-lg border ${
+                  errors.phone ? 'border-red-500' : 'border-gray-300'
+                } bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400`}
+              />
+              {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+            </div>
           </div>
 
-          {/* Password */}
+          {/* Gender and Date of Birth */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+                Gender (optional)
+              </label>
+              <select
+                name="gender"
+                id="gender"
+                value={form.gender}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400"
+              >
+                <option value="">Select gender</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="dob" className="block text-sm font-medium text-gray-700">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                name="dob"
+                id="dob"
+                value={form.dob}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-lg border ${
+                  errors.dob ? 'border-red-500' : 'border-gray-300'
+                } bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400`}
+              />
+              {errors.dob && <p className="text-red-500 text-sm">{errors.dob}</p>}
+            </div>
+          </div>
+
+          {/* Therapy Reason */}
           <div>
             <label
-              className="block text-gray-800 text-sm mb-1"
-              htmlFor="password"
+              htmlFor="therapyReason"
+              className="block text-sm font-medium text-gray-700"
             >
-              Password
+              Reason for Therapy
             </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              value={form.password}
+            <textarea
+              name="therapyReason"
+              id="therapyReason"
+              rows="4"
+              value={form.therapyReason}
               onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
-                errors.password ? 'border-red-500' : 'border-gray-200'
-              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
-              required
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+              className={`mt-1 block w-full rounded-lg border ${
+                errors.therapyReason ? 'border-red-500' : 'border-gray-300'
+              } bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400`}
+              placeholder="Briefly describe what you're seeking help for..."
+            ></textarea>
+            {errors.therapyReason && (
+              <p className="text-red-500 text-sm">{errors.therapyReason}</p>
             )}
           </div>
 
-          {/* Confirm Password */}
-          <div>
-            <label
-              className="block text-gray-800 text-sm mb-1"
-              htmlFor="confirmPassword"
-            >
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              id="confirmPassword"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-200'
-              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
-              required
-            />
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-            )}
+          {/* Passwords */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                id="password"
+                value={form.password}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-lg border ${
+                  errors.password ? 'border-red-500' : 'border-gray-300'
+                } bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400`}
+              />
+              {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+            </div>
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                name="confirmPassword"
+                id="confirmPassword"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-lg border ${
+                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                } bg-gray-50 p-3 focus:ring-2 focus:ring-purple-400`}
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+              )}
+            </div>
           </div>
 
-          {/* Terms and Conditions */}
-          <div className="flex items-center space-x-3">
+          {/* Terms */}
+          <div className="flex items-start gap-3">
             <input
               type="checkbox"
               id="acceptedTerms"
               name="acceptedTerms"
               checked={form.acceptedTerms}
               onChange={handleChange}
-              className={`w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-purple-400 ${
-                errors.acceptedTerms ? 'border-red-500' : ''
-              }`}
+              className="mt-1 w-5 h-5 border-gray-300 focus:ring-2 focus:ring-purple-400"
             />
-            <label
-              htmlFor="acceptedTerms"
-              className="text-gray-700 text-sm select-none"
-            >
-              I accept the{' '}
+            <label htmlFor="acceptedTerms" className="text-sm text-gray-700">
+              I agree to the{' '}
               <Link
                 href="/Customer/Terms"
                 className="text-purple-600 underline hover:text-purple-800"
                 target="_blank"
-                rel="noopener noreferrer"
               >
-                Terms and Conditions
+                Terms & Conditions
               </Link>
             </label>
           </div>
           {errors.acceptedTerms && (
-            <p className="text-red-500 text-sm mt-1">{errors.acceptedTerms}</p>
+            <p className="text-red-500 text-sm">{errors.acceptedTerms}</p>
           )}
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={!form.acceptedTerms}
-            className={`w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-lg transition-shadow shadow-md hover:shadow-lg ${
+            className={`w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-lg shadow ${
               !form.acceptedTerms ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            Register
+            Create Account
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-700">
-          Already have an account?{' '}
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Already registered?{' '}
           <Link href="/" className="text-purple-600 underline hover:text-purple-800">
             Login here
           </Link>

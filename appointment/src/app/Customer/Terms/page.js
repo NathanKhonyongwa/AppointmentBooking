@@ -90,6 +90,15 @@ export default function TermsAndConditions() {
         </p>
       </section>
 
+      <div className="mt-12 text-center">
+        <Link
+          href="/Register"
+          className="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg shadow hover:bg-purple-700 transition"
+        >
+          Back to Registration
+        </Link>
+      </div>
+
       <footer className="text-center text-gray-500 text-sm mt-12">
         &copy; {new Date().getFullYear()} Therapy Service. All rights reserved.
       </footer>

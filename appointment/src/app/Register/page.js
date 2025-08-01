@@ -8,15 +8,39 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    acceptedTerms: false,
   });
 
+  const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+    setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'Name is required';
+    if (!form.email.trim()) errs.email = 'Email is required';
+    if (!form.password) errs.password = 'Password is required';
+    if (form.password !== form.confirmPassword)
+      errs.confirmPassword = 'Passwords do not match';
+    if (!form.acceptedTerms) errs.acceptedTerms = 'You must accept the terms';
+    return errs;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add your registration logic here: validation, API calls, etc.
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    // Your registration logic here (e.g., API call)
     alert('Registration form submitted!');
   };
 
@@ -27,6 +51,7 @@ export default function RegisterPage() {
           Register Account
         </h2>
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Name */}
           <div>
             <label className="block text-gray-800 text-sm mb-1" htmlFor="name">
               Full Name
@@ -37,10 +62,17 @@ export default function RegisterPage() {
               id="name"
               value={form.name}
               onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
+                errors.name ? 'border-red-500' : 'border-gray-200'
+              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
               required
-              className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
+
+          {/* Email */}
           <div>
             <label className="block text-gray-800 text-sm mb-1" htmlFor="email">
               Email Address
@@ -51,12 +83,22 @@ export default function RegisterPage() {
               id="email"
               value={form.email}
               onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
+                errors.email ? 'border-red-500' : 'border-gray-200'
+              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
               required
-              className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
+
+          {/* Password */}
           <div>
-            <label className="block text-gray-800 text-sm mb-1" htmlFor="password">
+            <label
+              className="block text-gray-800 text-sm mb-1"
+              htmlFor="password"
+            >
               Password
             </label>
             <input
@@ -65,12 +107,22 @@ export default function RegisterPage() {
               id="password"
               value={form.password}
               onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
+                errors.password ? 'border-red-500' : 'border-gray-200'
+              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
               required
-              className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
+
+          {/* Confirm Password */}
           <div>
-            <label className="block text-gray-800 text-sm mb-1" htmlFor="confirmPassword">
+            <label
+              className="block text-gray-800 text-sm mb-1"
+              htmlFor="confirmPassword"
+            >
               Confirm Password
             </label>
             <input
@@ -79,14 +131,54 @@ export default function RegisterPage() {
               id="confirmPassword"
               value={form.confirmPassword}
               onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-xl bg-gray-100 border ${
+                errors.confirmPassword ? 'border-red-500' : 'border-gray-200'
+              } focus:outline-none focus:ring-2 focus:ring-purple-300`}
               required
-              className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+            )}
           </div>
 
+          {/* Terms and Conditions */}
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="acceptedTerms"
+              name="acceptedTerms"
+              checked={form.acceptedTerms}
+              onChange={handleChange}
+              className={`w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-purple-400 ${
+                errors.acceptedTerms ? 'border-red-500' : ''
+              }`}
+            />
+            <label
+              htmlFor="acceptedTerms"
+              className="text-gray-700 text-sm select-none"
+            >
+              I accept the{' '}
+              <Link
+                href="/Customer/Terms"
+                className="text-purple-600 underline hover:text-purple-800"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Terms and Conditions
+              </Link>
+            </label>
+          </div>
+          {errors.acceptedTerms && (
+            <p className="text-red-500 text-sm mt-1">{errors.acceptedTerms}</p>
+          )}
+
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-lg transition-shadow shadow-md hover:shadow-lg"
+            disabled={!form.acceptedTerms}
+            className={`w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-lg transition-shadow shadow-md hover:shadow-lg ${
+              !form.acceptedTerms ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             Register
           </button>

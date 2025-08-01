@@ -1,24 +1,25 @@
 "use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   HomeIcon,
   CalendarDaysIcon,
   ClipboardDocumentListIcon,
   UserCircleIcon,
   Cog6ToothIcon,
-} from '@heroicons/react/24/outline';
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/react/24/outline";
 
 const navItems = [
-  { name: 'Home', href: '/Customer', icon: HomeIcon },
-  { name: 'Book Appointment', href: '../Customer/MyBookings', icon: CalendarDaysIcon },
-  { name: 'My Sessions', href: '/client/sessions', icon: ClipboardDocumentListIcon },
-  { name: 'Profile', href: '/client/profile', icon: UserCircleIcon },
-  { name: 'Settings', href: '/client/settings', icon: Cog6ToothIcon },
+  { name: "Home", href: "/Customer", icon: HomeIcon },
+  { name: "Book Appointment", href: "/Customer/MyBookings", icon: CalendarDaysIcon },
+  { name: "My Sessions", href: "/client/sessions", icon: ClipboardDocumentListIcon },
+  { name: "Profile", href: "/client/profile", icon: UserCircleIcon },
+  { name: "Settings", href: "/client/settings", icon: Cog6ToothIcon },
 ];
 
-export default function ClientNavbar() {
+export default function Navbar() {
   const pathname = usePathname();
 
   return (
@@ -37,8 +38,8 @@ export default function ClientNavbar() {
                     className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium
                       ${
                         isActive
-                          ? 'text-purple-700 bg-purple-100'
-                          : 'text-gray-600 hover:text-purple-700 hover:bg-purple-50'
+                          ? "text-purple-700 bg-purple-100"
+                          : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
                       } transition`}
                   >
                     <Icon className="w-5 h-5" />
@@ -49,7 +50,14 @@ export default function ClientNavbar() {
             })}
           </ul>
 
-          {/* Mobile menu button - optional for future */}
+          {/* Logout button */}
+          <Link
+            href="/logout"
+            className="hidden md:flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-100 transition"
+          >
+            <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            Logout
+          </Link>
         </div>
       </div>
     </nav>

@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Navbar from '../Admin/Navbar/page'; // Adjust path if necessary
+import Navbar from '../Admin/Navbar/page';
 import { UserGroupIcon, CalendarIcon, UsersIcon } from '@heroicons/react/24/solid';
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { motion } from 'framer-motion';
 
 export default function AdminDashboard() {
   const [appointments, setAppointments] = useState([]);
@@ -25,50 +27,68 @@ export default function AdminDashboard() {
     ]);
   }, []);
 
+  const chartData = [
+    { name: 'Mon', appointments: 2 },
+    { name: 'Tue', appointments: 3 },
+    { name: 'Wed', appointments: 1 },
+    { name: 'Thu', appointments: 4 },
+    { name: 'Fri', appointments: 2 },
+  ];
+
   return (
-    <div className="bg-gray-100 min-h-screen font-poppins flex">
-      {/* Sidebar */}
+    <div className="bg-gradient-to-br from-purple-50 to-white min-h-screen font-poppins flex">
       <Navbar />
 
-      {/* Main Content */}
       <main className="ml-64 w-full p-6 md:p-10">
-        <h2 className="text-3xl font-semibold text-gray-800 mb-8">Admin Dashboard</h2>
+        <motion.h2
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-4xl font-bold text-gray-800 mb-10"
+        >
+          Admin Dashboard
+        </motion.h2>
 
-        {/* Overview Cards */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition group">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500">Appointments</p>
-                <p className="text-3xl font-bold text-purple-600">{appointments.length}</p>
+          {[{ title: 'Appointments', count: appointments.length, icon: CalendarIcon },
+            { title: 'Therapists', count: therapists.length, icon: UserGroupIcon },
+            { title: 'Clients', count: clients.length, icon: UsersIcon }].map(({ title, count, icon: Icon }, idx) => (
+            <motion.div
+              key={idx}
+              className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group"
+              whileHover={{ scale: 1.03 }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500">{title}</p>
+                  <p className="text-3xl font-bold text-purple-600">{count}</p>
+                </div>
+                <Icon className="w-10 h-10 text-purple-100 bg-purple-500 p-2 rounded-full transition" />
               </div>
-              <CalendarIcon className="w-10 h-10 text-purple-100 bg-purple-500 p-2 rounded-full group-hover:scale-105 transition" />
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition group">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500">Therapists</p>
-                <p className="text-3xl font-bold text-purple-600">{therapists.length}</p>
-              </div>
-              <UserGroupIcon className="w-10 h-10 text-purple-100 bg-purple-500 p-2 rounded-full group-hover:scale-105 transition" />
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition group">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500">Clients</p>
-                <p className="text-3xl font-bold text-purple-600">{clients.length}</p>
-              </div>
-              <UsersIcon className="w-10 h-10 text-purple-100 bg-purple-500 p-2 rounded-full group-hover:scale-105 transition" />
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </section>
 
-        {/* Appointments Table */}
+        {/* Line Chart */}
         <section className="bg-white p-6 rounded-2xl shadow mb-10">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">Weekly Appointment Trends</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={chartData}>
+              <Line type="monotone" dataKey="appointments" stroke="#8b5cf6" strokeWidth={3} />
+              <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+            </LineChart>
+          </ResponsiveContainer>
+        </section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white p-6 rounded-2xl shadow mb-10"
+        >
           <h3 className="text-xl font-semibold text-gray-700 mb-4">Upcoming Appointments</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm text-left">
@@ -105,10 +125,14 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-        </section>
+        </motion.section>
 
-        {/* Therapists List */}
-        <section className="bg-white p-6 rounded-2xl shadow">
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white p-6 rounded-2xl shadow"
+        >
           <h3 className="text-xl font-semibold text-gray-700 mb-4">Therapists</h3>
           <ul className="divide-y divide-gray-200">
             {therapists.map(({ id, name, specialty, email }) => (
@@ -122,7 +146,7 @@ export default function AdminDashboard() {
               </li>
             ))}
           </ul>
-        </section>
+        </motion.section>
       </main>
     </div>
   );

@@ -14,9 +14,9 @@ const navItems = [
   { name: 'Dashboard', href: '/Admin/', icon: HomeIcon },
   { name: 'Appointments', href: '/Admin/Appointments', icon: CalendarIcon },
   { name: 'Therapists', href: '/Admin/Therapists', icon: UserGroupIcon },
-  { name: 'Clients', href: '/admin/clients', icon: UserGroupIcon },
-  { name: 'Reports', href: '/admin/reports', icon: DocumentTextIcon },
-  { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },
+  { name: 'Clients', href: '/Admin/Customers', icon: UserGroupIcon },
+  { name: 'Reports', href: '/Admin/Reports', icon: DocumentTextIcon },
+  { name: 'Settings', href: '/Admin/Settings', icon: Cog6ToothIcon },
 ];
 
 export default function AdminSidebar() {

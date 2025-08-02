@@ -11,9 +11,9 @@ import {
 import Link from 'next/link';
 
 const navItems = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
-  { name: 'Appointments', href: '/admin/appointments', icon: CalendarIcon },
-  { name: 'Therapists', href: '/admin/therapists', icon: UserGroupIcon },
+  { name: 'Dashboard', href: '/Admin/', icon: HomeIcon },
+  { name: 'Appointments', href: '/Admin/Appointments', icon: CalendarIcon },
+  { name: 'Therapists', href: '/Admin/Therapists', icon: UserGroupIcon },
   { name: 'Clients', href: '/admin/clients', icon: UserGroupIcon },
   { name: 'Reports', href: '/admin/reports', icon: DocumentTextIcon },
   { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },

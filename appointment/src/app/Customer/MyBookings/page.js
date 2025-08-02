@@ -1,158 +1,190 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import Navbar from '../Navbar/page'; // Adjust path as needed
-import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import Navbar from '../../Customer/Navbar/page';
+import { PencilSquareIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { motion } from 'framer-motion';
 
-const BOOKINGS_PER_PAGE = 5;
+export default function CustomerDashboard() {
+  const [form, setForm] = useState({
+    therapist: '',
+    date: null,
+    time: '',
+    type: '',
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
 
-const mockBookings = [
-    { id: 1, therapist: 'Therapist A', date: '2025-08-05', time: '10:00 AM', status: 'Confirmed' },
-    { id: 2, therapist: 'Therapist B', date: '2025-08-06', time: '2:00 PM', status: 'Pending' },
-    { id: 3, therapist: 'Therapist C', date: '2025-08-07', time: '11:30 AM', status: 'Cancelled' },
-    { id: 4, therapist: 'Therapist A', date: '2025-08-08', time: '9:00 AM', status: 'Confirmed' },
-    { id: 5, therapist: 'Therapist B', date: '2025-08-09', time: '1:00 PM', status: 'Confirmed' },
-    { id: 6, therapist: 'Therapist C', date: '2025-08-10', time: '3:30 PM', status: 'Pending' },
-    { id: 7, therapist: 'Therapist A', date: '2025-08-11', time: '10:15 AM', status: 'Confirmed' },
-    { id: 8, therapist: 'Therapist B', date: '2025-08-12', time: '11:00 AM', status: 'Cancelled' },
-    { id: 9, therapist: 'Therapist C', date: '2025-08-13', time: '4:00 PM', status: 'Confirmed' },
-];
+  const validate = () => {
+    const errs = {};
+    if (!form.therapist) errs.therapist = 'Please select a therapist';
+    if (!form.date) errs.date = 'Please select a date';
+    if (!form.time) errs.time = 'Please select a time';
+    if (!form.type) errs.type = 'Please select session type';
+    return errs;
+  };
 
-export default function MyBookings() {
-    const [filterName, setFilterName] = useState('');
-    const [filterDate, setFilterDate] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors((prev) => ({ ...prev, [e.target.name]: '' }));
+  };
 
-    // Filter bookings by therapist name & date
-    const filteredBookings = useMemo(() => {
-        return mockBookings.filter((b) => {
-            const matchesName = b.therapist.toLowerCase().includes(filterName.toLowerCase());
-            const matchesDate = filterDate ? b.date === filterDate : true;
-            return matchesName && matchesDate;
-        });
-    }, [filterName, filterDate]);
+  const handleDateChange = (date) => {
+    setForm((prev) => ({ ...prev, date }));
+    setErrors((prev) => ({ ...prev, date: '' }));
+  };
 
-    // Pagination logic
-    const totalPages = Math.ceil(filteredBookings.length / BOOKINGS_PER_PAGE);
-    const paginatedBookings = filteredBookings.slice(
-        (currentPage - 1) * BOOKINGS_PER_PAGE,
-        currentPage * BOOKINGS_PER_PAGE
-    );
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSubmitted(false);
+      return;
+    }
 
-    // Group bookings by date for display
-    const groupedByDate = useMemo(() => {
-        return paginatedBookings.reduce((acc, booking) => {
-            (acc[booking.date] = acc[booking.date] || []).push(booking);
-            return acc;
-        }, {});
-    }, [paginatedBookings]);
+    const formattedDate = form.date.toISOString().split('T')[0];
+    console.log({ ...form, date: formattedDate });
+    setSubmitted(true);
+  };
 
-    const handlePrevPage = () => setCurrentPage((p) => Math.max(p - 1, 1));
-    const handleNextPage = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
-
-    return (
-        <>
-            <Navbar />
-
-            <main className="pt-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
-                <h1 className="text-3xl font-normal text-purple-700 mb-8">My Bookings</h1>
-
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-                    <div className="relative flex-1">
-                        <input
-                            type="text"
-                            placeholder="Filter by therapist name"
-                            value={filterName}
-                            onChange={(e) => {
-                                setFilterName(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="w-full border rounded-md px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                        />
-                        <MagnifyingGlassIcon className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    </div>
-
-                    <input
-                        type="date"
-                        value={filterDate}
-                        onChange={(e) => {
-                            setFilterDate(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                        className="border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    />
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-br from-white-50 white-100 pt-24 pb-12 px-4 sm:px-6 lg:px-8 flex justify-center">
+        <motion.div
+          className="max-w-5xl w-full bg-white rounded-3xl shadow-2xl p-10 grid grid-cols-1 md:grid-cols-2 gap-10"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Left Side: Title and Stepper */}
+          <div className="space-y-8">
+            <div className="flex items-center gap-3">
+              <PencilSquareIcon className="w-8 h-8 text-purple-700" />
+              <h1 className="text-3xl font-extrabold text-purple-700">
+                Book a Therapy Session
+              </h1>
+            </div>
+            <div className="space-y-6">
+              {['Therapist', 'Date', 'Time', 'Type'].map((step, idx) => (
+                <div key={step} className="flex items-center gap-4">
+                  <div
+                    className={`w-9 h-9 flex items-center justify-center rounded-full font-bold text-white ${
+                      form[step.toLowerCase()] ? 'bg-green-500' : 'bg-purple-400'
+                    }`}
+                  >
+                    {idx + 1}
+                  </div>
+                  <span className="text-gray-700 font-medium">{step}</span>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Booking List */}
-                {filteredBookings.length === 0 ? (
-                    <p className="text-gray-600 text-center mt-20">No bookings found.</p>
-                ) : (
-                    Object.entries(groupedByDate).map(([date, bookings]) => (
-                        <section key={date} className="mb-8">
-                            <h2 className="text-xl font-normal text-gray-800 mb-4 border-b border-purple-300 pb-1">
-                                {new Date(date).toLocaleDateString('en-US', {
-                                    weekday: 'long',
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                })}
-                            </h2>
-                            <ul className="space-y-4">
-                                {bookings.map(({ id, therapist, time, status }) => (
-                                    <li
-                                        key={id}
-                                        className="flex justify-between items-center bg-white shadow rounded-lg p-4"
-                                    >
-                                        <div>
-                                            <p className="font-normal text-gray-900">{therapist}</p>
-                                            <p className="text-sm text-gray-600">Time: {time}</p>
-                                        </div>
-                                        <span
-                                            className={`px-3 py-1 rounded-full font-normal text-sm ${
-                                                status === 'Confirmed'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : status === 'Pending'
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}
-                                        >
-                                            {status}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    ))
-                )}
+          {/* Right Side: Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Therapist */}
+            <div>
+              <label htmlFor="therapist" className="block text-gray-700 font-semibold mb-1">
+                Therapist
+              </label>
+              <select
+                id="therapist"
+                name="therapist"
+                value={form.therapist}
+                onChange={handleChange}
+                className={`w-full border rounded-xl px-4 py-3 text-base transition focus:ring-4 focus:ring-purple-300 focus:outline-none ${
+                  errors.therapist ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="">-- Choose a Therapist --</option>
+                <option value="Therapist A">Therapist A</option>
+                <option value="Therapist B">Therapist B</option>
+                <option value="Therapist C">Therapist C</option>
+              </select>
+              {errors.therapist && <p className="text-red-500 mt-1 text-sm">{errors.therapist}</p>}
+            </div>
 
-                {/* Pagination Controls */}
-                {filteredBookings.length > BOOKINGS_PER_PAGE && (
-                    <div className="flex justify-center items-center space-x-6 mt-6">
-                        <button
-                            onClick={handlePrevPage}
-                            disabled={currentPage === 1}
-                            className="p-2 rounded-md border border-purple-400 text-purple-600 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label="Previous page"
-                        >
-                            <ChevronLeftIcon className="w-6 h-6" />
-                        </button>
+            {/* Date */}
+            <div>
+              <label htmlFor="date" className="block text-gray-700 font-semibold mb-1">
+                Date
+              </label>
+              <DatePicker
+                selected={form.date}
+                onChange={handleDateChange}
+                minDate={new Date()}
+                placeholderText="Select a date"
+                dateFormat="MMMM d, yyyy"
+                className={`w-full border rounded-xl px-4 py-3 text-base transition focus:ring-4 focus:ring-purple-300 focus:outline-none ${
+                  errors.date ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.date && <p className="text-red-500 mt-1 text-sm">{errors.date}</p>}
+            </div>
 
-                        <span className="text-gray-700 font-normal">
-                            Page {currentPage} of {totalPages}
-                        </span>
+            {/* Time */}
+            <div>
+              <label htmlFor="time" className="block text-gray-700 font-semibold mb-1">
+                Time
+              </label>
+              <input
+                type="time"
+                id="time"
+                name="time"
+                value={form.time}
+                onChange={handleChange}
+                className={`w-full border rounded-xl px-4 py-3 text-base transition focus:ring-4 focus:ring-purple-300 focus:outline-none ${
+                  errors.time ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.time && <p className="text-red-500 mt-1 text-sm">{errors.time}</p>}
+            </div>
 
-                        <button
-                            onClick={handleNextPage}
-                            disabled={currentPage === totalPages}
-                            className="p-2 rounded-md border border-purple-400 text-purple-600 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                            aria-label="Next page"
-                        >
-                            <ChevronRightIcon className="w-6 h-6" />
-                        </button>
-                    </div>
-                )}
-            </main>
-        </>
-    );
+            {/* Session Type */}
+            <div>
+              <label htmlFor="type" className="block text-gray-700 font-semibold mb-1">
+                Session Type
+              </label>
+              <select
+                id="type"
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                className={`w-full border rounded-xl px-4 py-3 text-base transition focus:ring-4 focus:ring-purple-300 focus:outline-none ${
+                  errors.type ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="">-- Select Type --</option>
+                <option value="In-Person">In-Person</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+              {errors.type && <p className="text-red-500 mt-1 text-sm">{errors.type}</p>}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl shadow-lg transition"
+            >
+              Book Appointment
+            </button>
+
+            {submitted && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-3 mt-4 p-4 rounded-xl bg-green-100 text-green-700 shadow"
+              >
+                <CheckCircleIcon className="w-6 h-6" />
+                <span className="font-semibold">Your appointment has been successfully booked!</span>
+              </motion.div>
+            )}
+          </form>
+        </motion.div>
+      </div>
+    </>
+  );
 }

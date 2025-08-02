@@ -14,9 +14,9 @@ import {
 const navItems = [
   { name: "Home", href: "/Customer", icon: HomeIcon },
   { name: "Book Appointment", href: "/Customer/MyBookings", icon: CalendarDaysIcon },
-  { name: "My Sessions", href: "/client/sessions", icon: ClipboardDocumentListIcon },
-  { name: "Profile", href: "/client/profile", icon: UserCircleIcon },
-  { name: "Settings", href: "/client/settings", icon: Cog6ToothIcon },
+  { name: "My Sessions", href: "/Customer/Sessions", icon: ClipboardDocumentListIcon },
+  { name: "Profile", href: "/Customer/Profile", icon: UserCircleIcon },
+  { name: "Settings", href: "/Customer/Settings", icon: Cog6ToothIcon },
 ];
 
 export default function Navbar() {

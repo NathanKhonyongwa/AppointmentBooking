@@ -1,6 +1,9 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../lib/firebase'; // Adjust path if needed
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -16,6 +19,8 @@ export default function RegisterPage() {
   });
 
   const [errors, setErrors] = useState({});
+  const [firebaseError, setFirebaseError] = useState('');
+  const router = useRouter();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -24,6 +29,7 @@ export default function RegisterPage() {
       [name]: type === 'checkbox' ? checked : value,
     }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
+    setFirebaseError('');
   };
 
   const validate = () => {
@@ -40,14 +46,21 @@ export default function RegisterPage() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    alert('Registration form submitted!');
+
+    try {
+      await createUserWithEmailAndPassword(auth, form.email, form.password);
+      router.push('/');
+    } catch (error) {
+      console.error('Firebase registration error:', error);
+      setFirebaseError(error.message || 'Something went wrong');
+    }
   };
 
   return (

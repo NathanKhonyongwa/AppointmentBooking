@@ -7,6 +7,7 @@ import {
   DocumentTextIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -17,13 +18,14 @@ const navItems = [
   { name: 'Clients', href: '/Admin/Customers', icon: UserGroupIcon },
   { name: 'Reports', href: '/Admin/Reports', icon: DocumentTextIcon },
   { name: 'Settings', href: '/Admin/Settings', icon: Cog6ToothIcon },
+  { name: 'Notifications', href: '/Admin/Notifications', icon: BellIcon }, // New item
 ];
 
 export default function AdminSidebar() {
+  const notificationCount = 5; // You can later replace this with dynamic state or props
+
   const handleLogout = () => {
-    // TODO: Replace with your actual logout logic
     console.log('Logging out...');
-    // Example: clear token and redirect
     // localStorage.removeItem('token');
     // window.location.href = '/login';
   };
@@ -37,10 +39,15 @@ export default function AdminSidebar() {
           <Link
             key={name}
             href={href}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-purple-100 hover:text-purple-700 transition-all group"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-purple-100 hover:text-purple-700 transition-all group relative"
           >
-            <div className="p-2 bg-purple-50 rounded-md group-hover:bg-purple-200 transition-all">
+            <div className="p-2 bg-purple-50 rounded-md group-hover:bg-purple-200 transition-all relative">
               <Icon className="w-5 h-5 stroke-[1.8]" />
+              {name === 'Notifications' && notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                  {notificationCount}
+                </span>
+              )}
             </div>
             <span className="font-medium text-sm tracking-wide">{name}</span>
           </Link>

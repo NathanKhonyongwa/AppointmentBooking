@@ -36,13 +36,13 @@ const appointmentsMock = [
     status: 'Pending',
     bookedAt: '2025-08-02T15:12:00',
   },
-  // Add more mock items here if needed
+ 
 ];
 
 const ITEMS_PER_PAGE = 5;
 
 export default function AdminAppointments() {
-  const [appointments] = useState(appointmentsMock); // replace with backend fetch later
+  const [appointments] = useState(appointmentsMock); 
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
@@ -65,7 +65,7 @@ export default function AdminAppointments() {
           className="max-w-7xl mx-auto"
         >
           <h2 className="text-3xl font-bold text-purple-700 mb-6 text-center">
-            Admin - All Appointments
+            Appointments
           </h2>
 
           {appointments.length === 0 ? (

@@ -60,12 +60,13 @@ export default function Navbar() {
 
           {/* Logout - Desktop */}
           <Link
-            href="/logout"
-            className="hidden md:flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-100 transition"
-          >
-            <ArrowRightOnRectangleIcon className="w-5 h-5" />
-            Logout
-          </Link>
+  href="/"
+  className="hidden md:flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-100 transition"
+>
+  <ArrowRightOnRectangleIcon className="w-5 h-5" />
+  Logout
+</Link>
+
 
           {/* Mobile Menu Toggle */}
           <button className="md:hidden focus:outline-none" onClick={toggleMenu}>
@@ -103,15 +104,16 @@ export default function Navbar() {
               );
             })}
             <li>
-              <Link
-                href="/logout"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-100 transition"
-              >
-                <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                Logout
-              </Link>
-            </li>
+  <Link
+    href="/Logout"
+    onClick={() => setMenuOpen(false)}
+    className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-100 transition"
+  >
+    <ArrowRightOnRectangleIcon className="w-5 h-5" />
+    Logout
+  </Link>
+</li>
+
           </ul>
         </div>
       )}

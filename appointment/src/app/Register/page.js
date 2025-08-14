@@ -3,7 +3,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase'; // Adjust path if needed
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -20,6 +21,7 @@ export default function RegisterPage() {
 
   const [errors, setErrors] = useState({});
   const [firebaseError, setFirebaseError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleChange = (e) => {
@@ -36,10 +38,12 @@ export default function RegisterPage() {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Name is required';
     if (!form.email.trim()) errs.email = 'Email is required';
+    else if (!/^\S+@\S+\.\S+$/.test(form.email)) errs.email = 'Email is invalid';
     if (!form.phone.trim()) errs.phone = 'Phone number is required';
     if (!form.dob.trim()) errs.dob = 'Date of Birth is required';
     if (!form.therapyReason.trim()) errs.therapyReason = 'Please provide a reason';
     if (!form.password) errs.password = 'Password is required';
+    else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters';
     if (form.password !== form.confirmPassword)
       errs.confirmPassword = 'Passwords do not match';
     if (!form.acceptedTerms) errs.acceptedTerms = 'You must accept the terms';
@@ -54,12 +58,46 @@ export default function RegisterPage() {
       return;
     }
 
+    setIsLoading(true);
+    setFirebaseError('');
+
     try {
-      await createUserWithEmailAndPassword(auth, form.email, form.password);
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+      
+      // Get the user ID from the created user
+      const user = userCredential.user;
+      
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        gender: form.gender,
+        dob: form.dob,
+        therapyReason: form.therapyReason,
+        createdAt: new Date(),
+        role: 'client',
+        uid: user.uid,
+      });
+
+      // Redirect to home page or dashboard after successful registration
       router.push('/');
     } catch (error) {
-      console.error('Firebase registration error:', error);
-      setFirebaseError(error.message || 'Something went wrong');
+      console.error('Registration error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        setFirebaseError('This email is already registered.');
+      } else if (error.code === 'auth/weak-password') {
+        setFirebaseError('Password should be at least 6 characters.');
+      } else {
+        setFirebaseError('Something went wrong. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,6 +110,13 @@ export default function RegisterPage() {
         <p className="text-center text-gray-600 text-sm mb-6">
           Please complete the form below to book your first session.
         </p>
+        
+        {firebaseError && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            {firebaseError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Full Name */}
           <div>
@@ -143,7 +188,9 @@ export default function RegisterPage() {
                 <option value="">Select gender</option>
                 <option value="Female">Female</option>
                 <option value="Male">Male</option>
+                <option value="Non-binary">Non-binary</option>
                 <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
               </select>
             </div>
             <div>
@@ -257,12 +304,12 @@ export default function RegisterPage() {
           {/* Submit */}
           <button
             type="submit"
-            disabled={!form.acceptedTerms}
+            disabled={!form.acceptedTerms || isLoading}
             className={`w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-lg shadow ${
-              !form.acceptedTerms ? 'opacity-50 cursor-not-allowed' : ''
+              !form.acceptedTerms || isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            Create Account
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 

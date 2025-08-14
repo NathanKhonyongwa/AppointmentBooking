@@ -16,17 +16,23 @@ export default function LoginPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
 
-    try {
-      await signInWithEmailAndPassword(auth, form.email, form.password);
-      router.push('/Customer'); // Go to dashboard or appointments page
-    } catch (err) {
-      setError('Invalid email or password');
+  try {
+    await signInWithEmailAndPassword(auth, form.email, form.password);
+
+    if (form.email.toLowerCase() === 'admin@admin.com') {
+      router.push('/Admin'); // Redirect to admin dashboard
+    } else {
+      router.push('/Customer'); // Redirect to customer dashboard
     }
-  };
+  } catch (err) {
+    setError('Invalid email or password');
+  }
+};
+
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">

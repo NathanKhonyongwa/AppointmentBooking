@@ -13,6 +13,9 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../lib/firebase'; // Adjust the path as needed
 
 const navItems = [
   { name: 'Dashboard', href: '/Admin/', icon: HomeIcon },
@@ -28,9 +31,17 @@ const notificationCount = 5;
 
 export default function AdminSidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
-  const handleLogout = () => {
-    console.log('Logging out...');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/'); 
+    } catch (error) {
+      console.error('Logout error:', error);
+      // You can add a toast notification here if you want
+      alert('Logout failed. Please try again.');
+    }
   };
 
   return (
@@ -64,7 +75,11 @@ export default function AdminSidebar() {
       >
         {/* Close button (mobile) */}
         <div className="lg:hidden flex justify-end mb-4">
-          <button aria-label="Close menu" onClick={() => setIsOpen(false)} className="focus:outline-none">
+          <button 
+            aria-label="Close menu" 
+            onClick={() => setIsOpen(false)} 
+            className="focus:outline-none"
+          >
             <XMarkIcon className="w-6 h-6 text-gray-600" />
           </button>
         </div>
@@ -73,7 +88,7 @@ export default function AdminSidebar() {
           Therapy Admin
         </h1>
 
-        {/* Navigation: vertical list with vertical scroll, no horizontal scroll */}
+        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto pr-2 space-y-2">
           {navItems.map(({ name, href, icon: Icon }) => (
             <Link
@@ -107,7 +122,7 @@ export default function AdminSidebar() {
         </button>
 
         <footer className="pt-6 border-t border-gray-200 text-sm text-gray-500">
-          <p>© 2025 Therapy System</p>
+          <p>Developed by Pilhi Technologies</p>
         </footer>
       </aside>
     </>

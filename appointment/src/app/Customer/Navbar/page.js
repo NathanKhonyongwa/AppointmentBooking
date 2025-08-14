@@ -105,7 +105,7 @@ export default function Navbar() {
             })}
             <li>
   <Link
-    href="/Logout"
+    href="/"
     onClick={() => setMenuOpen(false)}
     className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-100 transition"
   >

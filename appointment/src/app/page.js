@@ -52,7 +52,7 @@ export default function LoginPage() {
           className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-1">CHMW Therapy System</h1>
+            <h1 className="text-3xl font-bold text-purple-700 mb-1">Booking System</h1>
           </div>
 
           <h2 className="text-center text-xl font-semibold text-gray-800 mb-4">

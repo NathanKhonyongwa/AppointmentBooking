@@ -7,15 +7,10 @@ export default function LogoutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // 👇 Clear auth data (adjust as needed for your auth system)
     localStorage.removeItem('token');
     sessionStorage.clear();
 
-    // 👉 Optional: if using cookies or server-side logout
-    // await fetch('/api/logout', { method: 'POST' });
-
-    // ✅ Redirect to login or home page
-    router.push('/'); // or '/' if you prefer
+    router.push('/'); 
   }, [router]);
 
   return (

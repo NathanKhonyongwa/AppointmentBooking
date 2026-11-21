@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Navbar from '../Navbar/page';
 
 import {
@@ -10,9 +10,8 @@ import {
   ChevronRightIcon,
   CalendarDaysIcon,
   ClockIcon,
-  UserRoundIcon,
+  UserIcon,
   ClipboardDocumentListIcon,
-  FunnelIcon,
   XMarkIcon,
   ArrowPathIcon,
   SparklesIcon,
@@ -28,43 +27,79 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
 } from 'firebase/firestore';
 
 const BOOKINGS_PER_PAGE = 5;
 
+// BOOKING STATUS STYLES
 const statusStyles = {
-  Confirmed: {
+  confirmed: {
     badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     dot: 'bg-emerald-500',
     label: 'Confirmed',
   },
-  Pending: {
+
+  pending: {
     badge: 'bg-amber-50 text-amber-700 border-amber-200',
     dot: 'bg-amber-500',
     label: 'Pending',
   },
-  Cancelled: {
+
+  cancelled: {
     badge: 'bg-red-50 text-red-700 border-red-200',
     dot: 'bg-red-500',
     label: 'Cancelled',
   },
 };
 
+// NORMALIZE FIREBASE STATUS
+function normalizeStatus(status) {
+  const value = String(status || '').trim().toLowerCase();
+
+  if (value === 'canceled') return 'cancelled';
+
+  return value;
+}
+
+// GET STATUS STYLE
 function getStatusStyle(status) {
-  return statusStyles[status] || {
+  const normalizedStatus = normalizeStatus(status);
+
+  return statusStyles[normalizedStatus] || {
     badge: 'bg-gray-100 text-gray-600 border-gray-200',
     dot: 'bg-gray-400',
     label: status || 'Unknown',
   };
 }
 
+// CONVERT FIREBASE DATE TO YYYY-MM-DD
+function getDateKey(date) {
+  if (!date) return '';
+
+  if (typeof date === 'string') {
+    return date.substring(0, 10);
+  }
+
+  if (date?.toDate) {
+    return date.toDate().toISOString().substring(0, 10);
+  }
+
+  if (date instanceof Date) {
+    return date.toISOString().substring(0, 10);
+  }
+
+  return '';
+}
+
+// FORMAT DATE
 function formatDate(date) {
-  if (!date) return 'Date unavailable';
+  const dateKey = getDateKey(date);
 
-  const parsed = new Date(`${date}T00:00:00`);
+  if (!dateKey) return 'Date unavailable';
 
-  if (Number.isNaN(parsed.getTime())) return date;
+  const parsed = new Date(`${dateKey}T00:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) return dateKey;
 
   return parsed.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -87,7 +122,9 @@ export default function MyBookings() {
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState('');
 
-  // Firebase authentication
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // AUTHENTICATION
   useEffect(() => {
     const auth = getAuth();
 
@@ -99,85 +136,106 @@ export default function MyBookings() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch bookings
+  // FETCH USER BOOKINGS FROM FIRESTORE
+  const fetchBookings = useCallback(async () => {
+  if (!user?.uid) {
+    console.log('No authenticated user found');
+    setBookings([]);
+    return;
+  }
+
+  setFetching(true);
+  setError('');
+
+  try {
+    // Check Firebase connection
+    console.log('FIREBASE PROJECT:', db.app.options.projectId);
+
+    // Check authenticated user
+    console.log('LOGGED IN UID:', user.uid);
+    console.log('LOGGED IN EMAIL:', user.email);
+
+    // Check Firestore collection
+    const bookingsRef = collection(db, 'bookings');
+
+    const bookingsQuery = query(
+      bookingsRef,
+      where('userId', '==', user.uid)
+    );
+
+    const snapshot = await getDocs(bookingsQuery);
+
+    console.log('BOOKINGS FOUND:', snapshot.size);
+
+    const fetchedBookings = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    console.log('BOOKING DETAILS:', fetchedBookings);
+
+    setBookings(fetchedBookings);
+
+  } catch (err) {
+    console.error('BOOKING ERROR:', err);
+    setError(err.message || 'Failed to retrieve bookings');
+
+  } finally {
+    setFetching(false);
+  }
+}, [user]);
+
+  // FETCH WHEN USER LOGS IN OR REFRESHES
   useEffect(() => {
     if (loading) return;
 
     if (!user) {
       setBookings([]);
+      setFetching(false);
       return;
     }
 
-    let active = true;
-
-    const fetchBookings = async () => {
-      setFetching(true);
-      setError('');
-
-      try {
-        const bookingsQuery = query(
-          collection(db, 'bookings'),
-          where('userId', '==', user.uid),
-          orderBy('date', 'desc')
-        );
-
-        const snapshot = await getDocs(bookingsQuery);
-
-        if (!active) return;
-
-        const fetched = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setBookings(fetched);
-      } catch (err) {
-        console.error('Error fetching bookings:', err);
-
-        if (active) {
-          setError(
-            'Unable to load your bookings. Please try again.'
-          );
-        }
-      } finally {
-        if (active) setFetching(false);
-      }
-    };
-
     fetchBookings();
+  }, [user, loading, refreshKey, fetchBookings]);
 
-    return () => {
-      active = false;
-    };
-  }, [user, loading]);
+  // REFRESH
+  const handleRefresh = () => {
+    if (!user || fetching) return;
 
-  // Filter bookings
+    setRefreshKey((previous) => previous + 1);
+  };
+
+  // FILTER BOOKINGS
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
-      const therapist = (booking.therapist || '').toLowerCase();
+      const therapist = String(booking.therapist || '').toLowerCase();
 
       const matchesName = therapist.includes(
         filterName.toLowerCase().trim()
       );
 
       const matchesDate = filterDate
-        ? booking.date === filterDate
+        ? getDateKey(booking.date) === filterDate
         : true;
 
       return matchesName && matchesDate;
     });
   }, [bookings, filterName, filterDate]);
 
-  // Booking statistics
+  // BOOKING STATISTICS
   const confirmedCount = bookings.filter(
-    (b) => b.status === 'Confirmed'
+    (booking) => normalizeStatus(booking.status) === 'confirmed'
   ).length;
 
   const pendingCount = bookings.filter(
-    (b) => b.status === 'Pending'
+    (booking) => normalizeStatus(booking.status) === 'pending'
   ).length;
 
-  // Pagination
+  const cancelledCount = bookings.filter(
+    (booking) => normalizeStatus(booking.status) === 'cancelled'
+  ).length;
+
+  // PAGINATION
   const totalPages = Math.ceil(
     filteredBookings.length / BOOKINGS_PER_PAGE
   );
@@ -187,10 +245,10 @@ export default function MyBookings() {
     currentPage * BOOKINGS_PER_PAGE
   );
 
-  // Group bookings by date
+  // GROUP BOOKINGS BY DATE
   const groupedByDate = useMemo(() => {
     return paginatedBookings.reduce((acc, booking) => {
-      const date = booking.date || 'Date unavailable';
+      const date = getDateKey(booking.date) || 'Date unavailable';
 
       if (!acc[date]) acc[date] = [];
 
@@ -200,26 +258,20 @@ export default function MyBookings() {
     }, {});
   }, [paginatedBookings]);
 
+  // CLEAR FILTERS
   const clearFilters = () => {
     setFilterName('');
     setFilterDate('');
     setCurrentPage(1);
   };
 
-  const hasFilters = filterName || filterDate;
-
-  const handleRefresh = () => {
-    if (!user) return;
-
-    setUser({ ...user });
-  };
+  const hasFilters = Boolean(filterName || filterDate);
 
   return (
     <>
       <Navbar />
 
       <main className="min-h-screen bg-slate-50 pt-24 sm:pt-28 pb-12">
-
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* PAGE HEADER */}
@@ -255,7 +307,7 @@ export default function MyBookings() {
                   <ArrowPathIcon
                     className={`w-4 h-4 ${fetching ? 'animate-spin' : ''}`}
                   />
-                  Refresh bookings
+                  {fetching ? 'Refreshing...' : 'Refresh bookings'}
                 </button>
               )}
 
@@ -265,8 +317,8 @@ export default function MyBookings() {
           {/* LOADING */}
           {loading && (
             <div className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[1, 2, 3].map((item) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((item) => (
                   <div
                     key={item}
                     className="h-28 rounded-2xl bg-white animate-pulse"
@@ -282,8 +334,9 @@ export default function MyBookings() {
           {/* NOT LOGGED IN */}
           {!loading && !user && (
             <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-14 text-center shadow-sm">
+
               <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-5">
-                <UserRoundIcon className="w-8 h-8" />
+                <UserIcon className="w-8 h-8" />
               </div>
 
               <h2 className="text-xl font-bold text-slate-900">
@@ -293,6 +346,7 @@ export default function MyBookings() {
               <p className="text-slate-500 mt-2 text-sm">
                 Please log in to access and manage your therapy bookings.
               </p>
+
             </div>
           )}
 
@@ -300,9 +354,25 @@ export default function MyBookings() {
           {!loading && user && (
             <>
 
-              {/* STATISTICS */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              {/* ERROR */}
+              {error && (
+                <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                  {error}
 
+                  <button
+                    onClick={handleRefresh}
+                    disabled={fetching}
+                    className="ml-2 font-bold underline"
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+
+              {/* STATISTICS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+                {/* TOTAL */}
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -323,11 +393,13 @@ export default function MyBookings() {
                       <ClipboardDocumentListIcon className="w-6 h-6" />
                     </div>
                   </div>
+
                   <p className="text-xs text-slate-400 mt-3">
                     All your appointments
                   </p>
                 </motion.div>
 
+                {/* CONFIRMED */}
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -349,11 +421,13 @@ export default function MyBookings() {
                       <CalendarDaysIcon className="w-6 h-6" />
                     </div>
                   </div>
+
                   <p className="text-xs text-slate-400 mt-3">
                     Approved appointments
                   </p>
                 </motion.div>
 
+                {/* PENDING */}
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -375,8 +449,37 @@ export default function MyBookings() {
                       <ClockIcon className="w-6 h-6" />
                     </div>
                   </div>
+
                   <p className="text-xs text-slate-400 mt-3">
                     Awaiting confirmation
+                  </p>
+                </motion.div>
+
+                {/* CANCELLED */}
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm text-slate-500 font-medium">
+                        Cancelled
+                      </p>
+
+                      <h3 className="text-3xl font-bold text-red-600 mt-2">
+                        {cancelledCount}
+                      </h3>
+                    </div>
+
+                    <div className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+                      <XMarkIcon className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-400 mt-3">
+                    Cancelled appointments
                   </p>
                 </motion.div>
 
@@ -443,24 +546,13 @@ export default function MyBookings() {
                 </div>
               </div>
 
-              {/* ERROR */}
-              {error && (
-                <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-                  {error}
-                  <button
-                    onClick={handleRefresh}
-                    className="ml-2 font-bold underline"
-                  >
-                    Try again
-                  </button>
-                </div>
-              )}
-
               {/* BOOKING LIST */}
               {fetching && bookings.length === 0 ? (
+
                 <div className="bg-white rounded-2xl p-8 text-center animate-pulse text-slate-400">
-                  Loading your appointments...
+                  Loading your appointments from Firebase...
                 </div>
+
               ) : filteredBookings.length === 0 ? (
 
                 <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-14 text-center shadow-sm">
@@ -517,7 +609,9 @@ export default function MyBookings() {
 
                           <div>
                             <h3 className="font-bold text-slate-800 text-sm sm:text-base">
-                              {formatDate(date)}
+                              {date === 'Date unavailable'
+                                ? date
+                                : formatDate(date)}
                             </h3>
 
                             <p className="text-xs text-slate-400">
@@ -536,7 +630,6 @@ export default function MyBookings() {
                             const status = getStatusStyle(booking.status);
 
                             return (
-
                               <motion.div
                                 key={booking.id}
                                 initial={{ opacity: 0, y: 10 }}
@@ -547,11 +640,11 @@ export default function MyBookings() {
 
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-                                  {/* THERAPIST */}
+                                  {/* THERAPIST DETAILS */}
                                   <div className="flex items-start gap-4 min-w-0">
 
                                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                                      <UserRoundIcon className="w-6 h-6" />
+                                      <UserIcon className="w-6 h-6" />
                                     </div>
 
                                     <div className="min-w-0">
@@ -564,15 +657,27 @@ export default function MyBookings() {
                                         {booking.therapist || 'Therapist not specified'}
                                       </h4>
 
-                                      <div className="flex items-center gap-2 text-sm text-slate-500 mt-2">
-                                        <ClockIcon className="w-4 h-4 shrink-0" />
-                                        <span>
+                                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 mt-2">
+
+                                        <span className="flex items-center gap-2">
+                                          <ClockIcon className="w-4 h-4 shrink-0" />
                                           {booking.time || 'Time not specified'}
                                         </span>
+
+                                        <span className="flex items-center gap-2">
+                                          <ClipboardDocumentListIcon className="w-4 h-4 shrink-0" />
+                                          {booking.type || 'Appointment type not specified'}
+                                        </span>
+
                                       </div>
 
-                                    </div>
+                                      {booking.userName && (
+                                        <p className="text-xs text-slate-400 mt-2">
+                                          Booked by: {booking.userName}
+                                        </p>
+                                      )}
 
+                                    </div>
                                   </div>
 
                                   {/* STATUS */}
@@ -592,7 +697,6 @@ export default function MyBookings() {
                                 </div>
 
                               </motion.div>
-
                             );
                           })}
 
@@ -662,7 +766,7 @@ export default function MyBookings() {
 
               )}
 
-              {/* FOOTER NOTE */}
+              {/* FOOTER */}
               <div className="mt-8 text-center">
                 <p className="text-xs text-slate-400">
                   <SparklesIcon className="w-3.5 h-3.5 inline mr-1 text-purple-400" />
